@@ -5,707 +5,493 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>零成本持倉計算機</title>
 <style>
-:root {
-  --bg:     #0f1117;
-  --card:   #161922;
-  --card2:  #1d2030;
-  --border: #272b3a;
-  --text:   #e8eaf0;
-  --muted:  #6b7080;
-  --green:  #3dd68c;
-  --red:    #f06a6a;
-  --blue:   #5b8dee;
-  --yellow: #f5c842;
-  --orange: #f0954a;
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Segoe UI','Microsoft JhengHei',sans-serif;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 28px 16px 48px;
-}
-.page { width: 100%; max-width: 520px; }
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d26;
+    --border: #2a2d3a;
+    --text: #e8eaf0;
+    --muted: #7a7f93;
+    --green: #3dd68c;
+    --red: #f06a6a;
+    --blue: #5b8dee;
+    --yellow: #f5c842;
+  }
 
-/* ── Header ── */
-.hd { text-align:center; margin-bottom:24px; }
-.hd h1 { font-size:1.25rem; font-weight:800; letter-spacing:-0.02em; }
-.hd p  { font-size:0.75rem; color:var(--muted); margin-top:4px; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* ── Card ── */
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 12px;
-}
-.card-title {
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-  margin-bottom: 14px;
-}
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+  }
 
-/* ── Tab bar ── */
-.tabs {
-  display: flex;
-  background: var(--bg);
-  border-radius: 10px;
-  padding: 3px;
-  gap: 3px;
-  margin-bottom: 14px;
-}
-.tab {
-  flex: 1;
-  background: none;
-  border: none;
-  color: var(--muted);
-  font-size: 0.82rem;
-  font-weight: 700;
-  padding: 8px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all .15s;
-  font-family: inherit;
-}
-.tab.buy.active  { background: rgba(61,214,140,.15); color: var(--green); }
-.tab.sell.active { background: rgba(240,106,106,.15); color: var(--red); }
+  .wrapper {
+    width: 100%;
+    max-width: 480px;
+  }
 
-/* ── Add form ── */
-.add-form {
-  display: flex;
-  gap: 8px;
-  align-items: flex-end;
-}
-.field { display:flex; flex-direction:column; gap:5px; flex:1; }
-.field label { font-size:0.68rem; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
-.inp {
-  background: var(--bg);
-  border: 1.5px solid var(--border);
-  color: var(--text);
-  border-radius: 9px;
-  padding: 10px 11px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  font-family: inherit;
-  outline: none;
-  transition: border-color .15s;
-  width: 100%;
-}
-.inp:focus { border-color: var(--blue); }
-.inp::placeholder { color: var(--muted); font-weight:400; }
-.inp::-webkit-outer-spin-button,
-.inp::-webkit-inner-spin-button { -webkit-appearance:none; }
-.inp[type=number] { -moz-appearance:textfield; }
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .header h1 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .header p {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 5px;
+  }
 
-.btn-add {
-  border: none;
-  border-radius: 9px;
-  padding: 10px 18px;
-  font-size: 0.9rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all .15s;
-  white-space: nowrap;
-  font-family: inherit;
-  flex-shrink: 0;
-}
-.btn-add.buy  { background: rgba(61,214,140,.18); color: var(--green); }
-.btn-add.sell { background: rgba(240,106,106,.18); color: var(--red); }
-.btn-add.buy:hover  { background: rgba(61,214,140,.28); }
-.btn-add.sell:hover { background: rgba(240,106,106,.28); }
+  /* Card */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 14px;
+  }
 
-/* ── Transaction list ── */
-.txn-list { margin-top:14px; display:flex; flex-direction:column; gap:5px; max-height:220px; overflow-y:auto; }
-.txn-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  padding: 9px 12px;
-  font-size: 0.82rem;
-}
-.txn-badge {
-  font-size: 0.68rem;
-  font-weight: 800;
-  padding: 2px 8px;
-  border-radius: 20px;
-  flex-shrink: 0;
-}
-.txn-badge.buy  { background:rgba(61,214,140,.12); color:var(--green); }
-.txn-badge.sell { background:rgba(240,106,106,.12); color:var(--red); }
-.txn-detail { flex:1; color:var(--muted); }
-.txn-detail strong { color:var(--text); }
-.txn-amount { font-weight:700; text-align:right; flex-shrink:0; }
-.txn-amount.buy  { color:var(--red); }
-.txn-amount.sell { color:var(--green); }
-.txn-del {
-  background:none; border:none; color:var(--border);
-  font-size:1rem; cursor:pointer; padding:0 2px;
-  transition: color .15s; line-height:1;
-}
-.txn-del:hover { color:var(--red); }
-.empty-txn { text-align:center; padding:20px; color:var(--muted); font-size:0.8rem; }
+  .section-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
 
-/* ── Summary bar ── */
-.sum-grid {
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  gap: 8px;
-}
-.sum-item {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 10px;
-  text-align: center;
-}
-.sum-label { font-size:0.65rem; color:var(--muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:.04em; }
-.sum-val   { font-size:1.05rem; font-weight:800; }
+  /* Input rows */
+  .input-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    gap: 12px;
+  }
+  .input-row:last-child { margin-bottom: 0; }
 
-/* ── Divider ── */
-.div { height:1px; background:var(--border); margin:16px 0; }
+  .input-label {
+    font-size: 0.875rem;
+    color: var(--text);
+    flex: 1;
+    white-space: nowrap;
+  }
+  .input-label small {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 2px;
+    font-weight: 400;
+  }
 
-/* ── Price input row ── */
-.price-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom:14px;
-}
-.mode-toggle {
-  display: flex;
-  background: var(--bg);
-  border-radius: 8px;
-  padding: 3px;
-  gap: 2px;
-  flex-shrink: 0;
-}
-.mode-btn {
-  background: none; border: none;
-  color: var(--muted);
-  font-size: 0.72rem; font-weight:700;
-  padding: 5px 10px; border-radius:6px;
-  cursor:pointer; transition:all .15s; font-family:inherit;
-}
-.mode-btn.active { background:var(--card2); color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,.4); }
-.price-inp-wrap {
-  display:flex; align-items:center;
-  background:var(--bg); border:1.5px solid var(--border);
-  border-radius:9px; overflow:hidden; flex:1;
-  transition:border-color .15s;
-}
-.price-inp-wrap:focus-within { border-color:var(--blue); }
-.price-inp-wrap input {
-  background:none; border:none; color:var(--text);
-  font-size:1.05rem; font-weight:700;
-  padding:10px 12px; width:100%; text-align:right;
-  outline:none; font-family:inherit;
-}
-.price-inp-wrap input::placeholder { color:var(--muted); font-weight:400; }
-.price-inp-wrap input::-webkit-outer-spin-button,
-.price-inp-wrap input::-webkit-inner-spin-button { -webkit-appearance:none; }
-.price-inp-wrap input[type=number] { -moz-appearance:textfield; }
-.price-unit { font-size:0.75rem; color:var(--muted); padding:0 10px 0 4px; white-space:nowrap; }
+  .input-field {
+    display: flex;
+    align-items: center;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+    width: 160px;
+    flex-shrink: 0;
+  }
+  .input-field:focus-within { border-color: var(--blue); }
 
-/* Slider */
-.slider-wrap { margin-bottom:16px; }
-.slider-marks { display:flex; justify-content:space-between; font-size:0.63rem; color:var(--muted); margin-bottom:5px; }
-input[type=range] {
-  width:100%; height:4px; appearance:none;
-  background:var(--border); border-radius:2px; outline:none; cursor:pointer;
-}
-input[type=range]::-webkit-slider-thumb {
-  appearance:none; width:16px; height:16px; border-radius:50%;
-  background:var(--blue); cursor:pointer; box-shadow:0 0 0 3px rgba(91,141,238,.2);
-}
+  .input-field input {
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 10px 12px;
+    width: 100%;
+    text-align: right;
+    outline: none;
+    font-family: inherit;
+  }
+  .input-field input::placeholder { color: var(--muted); font-weight: 400; }
+  .input-field input::-webkit-outer-spin-button,
+  .input-field input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .input-field input[type=number] { -moz-appearance: textfield; }
 
-/* ── Arc ── */
-.arc-wrap { display:flex; justify-content:center; margin:4px 0 12px; }
-svg.arc { overflow:visible; }
+  .input-unit {
+    font-size: 0.75rem;
+    color: var(--muted);
+    padding: 0 10px 0 4px;
+    white-space: nowrap;
+  }
 
-/* ── Result grid ── */
-.res-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-.res-item {
-  background:var(--bg); border:1px solid var(--border);
-  border-radius:10px; padding:12px; text-align:center;
-}
-.res-label { font-size:0.65rem; color:var(--muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:.04em; }
-.res-val   { font-size:1.1rem; font-weight:800; }
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 18px 0;
+  }
 
-/* ── Chips ── */
-.chips { display:flex; gap:6px; flex-wrap:wrap; margin:14px 0 0; }
-.chip {
-  background:var(--bg); border:1px solid var(--border);
-  color:var(--muted); border-radius:20px;
-  padding:4px 12px; font-size:0.72rem; font-weight:700;
-  cursor:pointer; transition:all .15s;
-}
-.chip.active { background:rgba(91,141,238,.15); border-color:var(--blue); color:var(--blue); }
+  /* Mode toggle */
+  .profit-toggle {
+    display: flex;
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+    width: 160px;
+    flex-shrink: 0;
+  }
+  .toggle-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 6px 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .toggle-btn.active {
+    background: var(--card);
+    color: var(--text);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  }
 
-/* ── Banner ── */
-.banner {
-  margin-top:14px; border-radius:10px; padding:12px 14px;
-  font-size:0.78rem; color:var(--muted); line-height:1.65;
-  background:rgba(91,141,238,.07); border:1px solid rgba(91,141,238,.2);
-  transition: all .2s;
-}
-.banner strong { color:var(--text); }
+  /* Slider */
+  .slider-row { margin-top: 8px; }
+  .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  input[type=range] {
+    width: 100%;
+    height: 4px;
+    appearance: none;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--blue);
+    cursor: pointer;
+    box-shadow: 0 0 0 3px rgba(91,141,238,0.2);
+  }
 
-/* ── Clear btn ── */
-.btn-clear {
-  background:none; border:1px solid var(--border); color:var(--muted);
-  border-radius:8px; padding:6px 14px; font-size:0.72rem; font-weight:600;
-  cursor:pointer; transition:all .15s; font-family:inherit;
-}
-.btn-clear:hover { border-color:var(--red); color:var(--red); }
+  /* Arc */
+  .arc-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 6px 0 10px;
+  }
+  svg.arc { overflow: visible; }
 
-/* ── Colors ── */
-.c-green  { color:var(--green); }
-.c-red    { color:var(--red); }
-.c-blue   { color:var(--blue); }
-.c-yellow { color:var(--yellow); }
-.c-muted  { color:var(--muted); }
+  /* Result grid */
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .result-item {
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  .result-item .r-label { font-size: 0.7rem; color: var(--muted); margin-bottom: 6px; }
+  .result-item .r-val   { font-size: 1.15rem; font-weight: 700; }
 
-::-webkit-scrollbar { width:4px; }
-::-webkit-scrollbar-track { background:transparent; }
-::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+  /* Chips */
+  .chip {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .chip.active {
+    background: rgba(91,141,238,0.15);
+    border-color: var(--blue);
+    color: var(--blue);
+  }
+
+  /* Info banner */
+  .info-banner {
+    background: rgba(91,141,238,0.08);
+    border: 1px solid rgba(91,141,238,0.2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-top: 14px;
+    transition: all 0.2s;
+  }
+  .info-banner strong { color: var(--text); }
+
+  /* Colors */
+  .c-green { color: var(--green); }
+  .c-red   { color: var(--red); }
+  .c-blue  { color: var(--blue); }
+  .c-muted { color: var(--muted); }
+
+  @media (max-width: 420px) {
+    .input-field { width: 140px; }
+    .profit-toggle { width: 140px; }
+  }
 </style>
 </head>
 <body>
-<div class="page">
+<div class="wrapper">
 
-  <div class="hd">
+  <div class="header">
     <h1>零成本持倉計算機</h1>
-    <p>記錄加倉 / 減倉，自動計算需賣出多少部位可回本</p>
+    <p>輸入持倉資訊，立即算出需賣出多少部位可回本</p>
   </div>
 
-  <!-- ① Transaction card -->
+  <!-- Input Card -->
   <div class="card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div class="card-title" style="margin:0">交易記錄</div>
-      <button class="btn-clear" onclick="clearAll()">清除全部</button>
-    </div>
+    <div class="section-label">持倉資訊</div>
 
-    <div class="tabs">
-      <button class="tab buy active" id="tabBuy" onclick="switchTab('buy')">▲ 加倉</button>
-      <button class="tab sell" id="tabSell" onclick="switchTab('sell')">▼ 減倉</button>
-    </div>
-
-    <div class="add-form">
-      <div class="field">
-        <label id="priceLabel">買入價格</label>
-        <input class="inp" type="number" id="txnPrice" placeholder="100.00" step="0.1" min="0">
-      </div>
-      <div class="field">
-        <label>股數</label>
-        <input class="inp" type="number" id="txnQty" placeholder="1000" step="1" min="1">
-      </div>
-      <button class="btn-add buy" id="addBtn" onclick="addTxn()">+ 加倉</button>
-    </div>
-
-    <div class="txn-list" id="txnList">
-      <div class="empty-txn">尚無交易紀錄，請先加倉</div>
-    </div>
-  </div>
-
-  <!-- ② Position summary -->
-  <div class="card" id="summaryCard">
-    <div class="card-title">持倉摘要</div>
-    <div class="sum-grid">
-      <div class="sum-item">
-        <div class="sum-label">持有股數</div>
-        <div class="sum-val" id="sShares">—</div>
-      </div>
-      <div class="sum-item">
-        <div class="sum-label">加權均成本</div>
-        <div class="sum-val c-yellow" id="sAvg">—</div>
-      </div>
-      <div class="sum-item">
-        <div class="sum-label">剩餘成本</div>
-        <div class="sum-val" id="sRemCost">—</div>
-      </div>
-      <div class="sum-item">
-        <div class="sum-label">總投入</div>
-        <div class="sum-val c-muted" id="sTotalIn">—</div>
-      </div>
-      <div class="sum-item">
-        <div class="sum-label">已回收</div>
-        <div class="sum-val c-green" id="sRecovered">—</div>
-      </div>
-      <div class="sum-item">
-        <div class="sum-label">實現損益</div>
-        <div class="sum-val" id="sRealPnL">—</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ③ Zero-cost calculator -->
-  <div class="card">
-    <div class="card-title">零成本計算</div>
-
-    <div class="price-row">
-      <div class="mode-toggle">
-        <button class="mode-btn active" id="mBtnPct"   onclick="setMode('pct')">獲利%</button>
-        <button class="mode-btn"        id="mBtnPrice" onclick="setMode('price')">股價</button>
-      </div>
-      <div class="price-inp-wrap">
-        <input type="number" id="priceIn" placeholder="20" oninput="onPriceInput()">
-        <span class="price-unit" id="priceUnit">%</span>
+    <div class="input-row">
+      <div class="input-label">持有股數<small>目前總持倉</small></div>
+      <div class="input-field">
+        <input type="number" id="shares" placeholder="1000" oninput="calc()">
+        <span class="input-unit">股</span>
       </div>
     </div>
 
-    <div class="slider-wrap" id="sliderWrap">
-      <div class="slider-marks">
+    <div class="input-row">
+      <div class="input-label">平均成本<small>每股買入均價</small></div>
+      <div class="input-field">
+        <input type="number" id="avgCost" placeholder="100.00" oninput="calc()">
+        <span class="input-unit">元</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="input-row" style="align-items:flex-start">
+      <div class="input-label" style="padding-top:10px">
+        <span id="modeLabel">當前獲利</span>
+        <small id="modeSub">輸入目前浮盈%</small>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+        <div class="profit-toggle">
+          <button class="toggle-btn active" id="btnPct"   onclick="setMode('pct')">獲利%</button>
+          <button class="toggle-btn"        id="btnPrice" onclick="setMode('price')">股價</button>
+        </div>
+        <div class="input-field">
+          <input type="number" id="profitInput" placeholder="20" oninput="calc()">
+          <span class="input-unit" id="inputUnit">%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="slider-row" id="sliderRow">
+      <div class="slider-labels">
         <span>-50%</span><span>0%</span><span>+50%</span><span>+100%</span><span>+200%</span>
       </div>
-      <input type="range" id="slider" min="-50" max="200" step="1" value="20" oninput="onSlider()">
+      <input type="range" id="slider" min="-50" max="200" step="1" value="20" oninput="syncSlider()">
     </div>
+  </div>
 
-    <!-- Arc -->
+  <!-- Result Card -->
+  <div class="card">
+
     <div class="arc-wrap">
       <svg class="arc" width="180" height="100" viewBox="0 0 180 100">
         <defs>
-          <linearGradient id="ag" x1="0%" y1="0%" x2="100%" y2="0%">
+          <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stop-color="#3dd68c"/>
             <stop offset="100%" stop-color="#5b8dee"/>
           </linearGradient>
         </defs>
-        <path d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="#272b3a" stroke-width="10" stroke-linecap="round"/>
-        <path id="arcFill" d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="url(#ag)"
-          stroke-width="10" stroke-linecap="round" stroke-dasharray="0 220"
-          style="transition:stroke-dasharray .5s ease,stroke .3s"/>
-        <text x="90" y="74" text-anchor="middle" fill="#6b7080" font-size="10.5" font-family="Segoe UI,sans-serif">需賣出</text>
-        <text id="arcNum" x="90" y="54" text-anchor="middle" fill="#e8eaf0"
+        <path d="M 20 90 A 70 70 0 0 1 160 90"
+          fill="none" stroke="#2a2d3a" stroke-width="10" stroke-linecap="round"/>
+        <path id="arcFill" d="M 20 90 A 70 70 0 0 1 160 90"
+          fill="none" stroke="url(#arcGrad)" stroke-width="10" stroke-linecap="round"
+          stroke-dasharray="0 220" style="transition:stroke-dasharray .5s ease"/>
+        <text x="90" y="75" text-anchor="middle" fill="#7a7f93" font-size="11" font-family="Segoe UI,sans-serif">需賣出</text>
+        <text id="arcNum" x="90" y="55" text-anchor="middle" fill="#e8eaf0"
           font-size="26" font-weight="800" font-family="Segoe UI,sans-serif">—</text>
-        <text x="90" y="91" text-anchor="middle" fill="#6b7080" font-size="10" font-family="Segoe UI,sans-serif">股</text>
+        <text x="90" y="94" text-anchor="middle" fill="#7a7f93" font-size="10" font-family="Segoe UI,sans-serif">股</text>
       </svg>
     </div>
 
-    <div class="res-grid">
-      <div class="res-item">
-        <div class="res-label">賣出回收</div>
-        <div class="res-val c-green" id="rRec">—</div>
+    <div class="result-grid">
+      <div class="result-item">
+        <div class="r-label">賣出回收金額</div>
+        <div class="r-val c-green" id="rRecovered">—</div>
       </div>
-      <div class="res-item">
-        <div class="res-label">零成本剩餘</div>
-        <div class="res-val c-blue" id="rFree">—</div>
+      <div class="result-item">
+        <div class="r-label">零成本剩餘持倉</div>
+        <div class="r-val c-blue" id="rFreeShares">—</div>
       </div>
-      <div class="res-item">
-        <div class="res-label">當前股價</div>
-        <div class="res-val" id="rPrice">—</div>
+      <div class="result-item">
+        <div class="r-label">當前股價</div>
+        <div class="r-val" id="rCurrentPrice">—</div>
       </div>
-      <div class="res-item">
-        <div class="res-label">未實現損益</div>
-        <div class="res-val" id="rUnreal">—</div>
+      <div class="result-item">
+        <div class="r-label">總投入成本</div>
+        <div class="r-val c-muted" id="rTotalCost">—</div>
       </div>
     </div>
 
-    <!-- Recovery target chips -->
-    <div class="chips" id="chips">
-      <div class="chip" data-t="25"  onclick="setTarget(this,25)">回收 25%</div>
-      <div class="chip" data-t="50"  onclick="setTarget(this,50)">回收 50%</div>
-      <div class="chip active" data-t="100" onclick="setTarget(this,100)">回收 100%</div>
-      <div class="chip" data-t="125" onclick="setTarget(this,125)">回收 125%</div>
-      <div class="chip" data-t="150" onclick="setTarget(this,150)">回收 150%</div>
+    <div class="divider" style="margin:16px 0 12px"></div>
+    <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">回收目標</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap" id="chips">
+      <div class="chip"        onclick="setTarget(this,25)">回收 25%</div>
+      <div class="chip"        onclick="setTarget(this,50)">回收 50%</div>
+      <div class="chip active" onclick="setTarget(this,100)">回收 100%</div>
+      <div class="chip"        onclick="setTarget(this,125)">回收 125%</div>
+      <div class="chip"        onclick="setTarget(this,150)">回收 150%</div>
     </div>
 
-    <div class="banner" id="banner">請先記錄加倉資訊，再輸入當前獲利% 或股價。</div>
+    <div class="info-banner" id="infoBanner">
+      請輸入持股數、成本與獲利%，即可計算零成本部位。
+    </div>
   </div>
 
 </div>
 
 <script>
-// ─── State ───────────────────────────────
-let txns   = [];        // [{id, type:'buy'|'sell', price, qty}]
 let mode   = 'pct';
 let target = 100;
 
-// ─── Persist ─────────────────────────────
-function save() { localStorage.setItem('zcc_txns', JSON.stringify(txns)); }
-function load() {
-  try { txns = JSON.parse(localStorage.getItem('zcc_txns') || '[]'); } catch(e) { txns=[]; }
-}
-
-// ─── Tab ─────────────────────────────────
-let activeTab = 'buy';
-function switchTab(t) {
-  activeTab = t;
-  document.getElementById('tabBuy').classList.toggle('active', t==='buy');
-  document.getElementById('tabSell').classList.toggle('active', t==='sell');
-  document.getElementById('addBtn').className = 'btn-add ' + t;
-  document.getElementById('addBtn').textContent = t==='buy' ? '+ 加倉' : '– 減倉';
-  document.getElementById('priceLabel').textContent = t==='buy' ? '買入價格' : '賣出價格';
-}
-
-// ─── Add transaction ─────────────────────
-function addTxn() {
-  const price = parseFloat(document.getElementById('txnPrice').value);
-  const qty   = parseInt(document.getElementById('txnQty').value);
-  if (!price || price <= 0 || !qty || qty <= 0) { flash('請輸入有效的價格與股數'); return; }
-
-  if (activeTab === 'sell') {
-    const pos = calcPos();
-    if (qty > pos.remainingShares) {
-      flash(`持倉僅 ${fmt(pos.remainingShares)} 股，無法賣出 ${fmt(qty)} 股`); return;
-    }
-  }
-
-  txns.push({ id: Date.now(), type: activeTab, price, qty });
-  document.getElementById('txnPrice').value = '';
-  document.getElementById('txnQty').value   = '';
-  save();
-  render();
-}
-
-// ─── Delete transaction ───────────────────
-function delTxn(id) {
-  txns = txns.filter(t => t.id !== id);
-  save();
-  render();
-}
-
-// ─── Clear all ────────────────────────────
-function clearAll() {
-  if (!txns.length || confirm('確認清除所有交易記錄？')) {
-    txns = [];
-    save();
-    render();
-  }
-}
-
-// ─── Calculations ────────────────────────
-function calcPos() {
-  let totalInvested = 0, totalRecovered = 0;
-  let totalBought = 0, totalSold = 0;
-  let runQty = 0, runCost = 0, realizedPnL = 0;
-
-  for (const t of txns) {
-    if (t.type === 'buy') {
-      totalInvested += t.price * t.qty;
-      totalBought   += t.qty;
-      runCost += t.price * t.qty;
-      runQty  += t.qty;
-    } else {
-      totalRecovered += t.price * t.qty;
-      totalSold      += t.qty;
-      const avgAtSell = runQty > 0 ? runCost / runQty : 0;
-      realizedPnL += (t.price - avgAtSell) * t.qty;
-      runCost -= avgAtSell * t.qty;
-      runQty  -= t.qty;
-    }
-  }
-
-  const remainingShares  = totalBought - totalSold;
-  const remainingCost    = totalInvested - totalRecovered;
-  const avgCost          = totalBought > 0 ? totalInvested / totalBought : 0;
-  const effectiveAvgCost = remainingShares > 0 ? remainingCost / remainingShares : 0;
-
-  return { totalInvested, totalRecovered, totalBought, totalSold,
-           remainingShares, remainingCost, avgCost, effectiveAvgCost, realizedPnL };
-}
-
-// ─── Render ───────────────────────────────
-function render() {
-  renderTxnList();
-  renderSummary();
+function setMode(m) {
+  mode = m;
+  document.getElementById('btnPct').classList.toggle('active', m === 'pct');
+  document.getElementById('btnPrice').classList.toggle('active', m === 'price');
+  document.getElementById('modeLabel').textContent  = m === 'pct' ? '當前獲利' : '當前股價';
+  document.getElementById('modeSub').textContent    = m === 'pct' ? '輸入目前浮盈%' : '輸入現在股價';
+  document.getElementById('inputUnit').textContent  = m === 'pct' ? '%' : '元';
+  document.getElementById('sliderRow').style.display = m === 'pct' ? '' : 'none';
+  document.getElementById('profitInput').placeholder = m === 'pct' ? '20' : '120.00';
+  document.getElementById('profitInput').value = '';
   calc();
 }
 
-function renderTxnList() {
-  const el = document.getElementById('txnList');
-  if (!txns.length) {
-    el.innerHTML = '<div class="empty-txn">尚無交易紀錄，請先加倉</div>';
-    return;
-  }
-  // Show newest first
-  el.innerHTML = [...txns].reverse().map(t => {
-    const amount = t.price * t.qty;
-    return `<div class="txn-row">
-      <span class="txn-badge ${t.type}">${t.type==='buy'?'▲ 加倉':'▼ 減倉'}</span>
-      <span class="txn-detail"><strong>$${fmt2(t.price)}</strong> × ${fmt(t.qty)} 股</span>
-      <span class="txn-amount ${t.type}">${t.type==='buy'?'-':'+'}$${fmtM(amount)}</span>
-      <button class="txn-del" onclick="delTxn(${t.id})">✕</button>
-    </div>`;
-  }).join('');
+function syncSlider() {
+  document.getElementById('profitInput').value = document.getElementById('slider').value;
+  calc();
 }
 
-function renderSummary() {
-  const p = calcPos();
-  const hasTxns = txns.length > 0;
-
-  document.getElementById('sShares').textContent   = hasTxns ? fmt(p.remainingShares) + ' 股' : '—';
-  document.getElementById('sAvg').textContent      = hasTxns && p.avgCost > 0 ? '$' + fmt2(p.avgCost) : '—';
-
-  const remEl = document.getElementById('sRemCost');
-  if (!hasTxns) { remEl.textContent = '—'; remEl.className = 'sum-val'; }
-  else if (p.remainingCost <= 0) { remEl.textContent = '🎉 $0'; remEl.className = 'sum-val c-green'; }
-  else { remEl.textContent = '$' + fmtM(p.remainingCost); remEl.className = 'sum-val c-red'; }
-
-  document.getElementById('sTotalIn').textContent  = hasTxns ? '$' + fmtM(p.totalInvested) : '—';
-  document.getElementById('sRecovered').textContent= hasTxns ? '$' + fmtM(p.totalRecovered) : '—';
-
-  const pnlEl = document.getElementById('sRealPnL');
-  if (!hasTxns || p.totalSold === 0) { pnlEl.textContent = '—'; pnlEl.className = 'sum-val c-muted'; }
-  else {
-    pnlEl.textContent = (p.realizedPnL >= 0 ? '+' : '') + '$' + fmtM(p.realizedPnL);
-    pnlEl.className   = 'sum-val ' + (p.realizedPnL >= 0 ? 'c-green' : 'c-red');
-  }
+function setTarget(el, t) {
+  target = t;
+  document.querySelectorAll('#chips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  calc();
 }
 
-// ─── Zero-cost calc ───────────────────────
 function calc() {
-  const pos      = calcPos();
-  const inputVal = parseFloat(document.getElementById('priceIn').value);
-  const banner   = document.getElementById('banner');
+  const shares   = parseFloat(document.getElementById('shares').value);
+  const avgCost  = parseFloat(document.getElementById('avgCost').value);
+  const inputVal = parseFloat(document.getElementById('profitInput').value);
 
-  if (!txns.length || pos.remainingShares <= 0) {
-    resetResult();
-    banner.innerHTML = pos.totalSold > 0 && pos.remainingShares <= 0
-      ? '<strong style="color:var(--green)">🎉 已全數賣出，無剩餘持倉。</strong>'
-      : '請先記錄加倉資訊，再輸入當前獲利% 或股價。';
-    banner.style.cssText = '';
-    return;
+  if (mode === 'pct' && !isNaN(inputVal)) {
+    document.getElementById('slider').value = Math.max(-50, Math.min(200, inputVal));
   }
 
-  if (isNaN(inputVal)) { resetResult(); return; }
+  if (isNaN(shares) || shares <= 0 || isNaN(avgCost) || avgCost <= 0 || isNaN(inputVal)) {
+    resetUI(); return;
+  }
 
-  const currentPrice = mode === 'pct'
-    ? pos.effectiveAvgCost * (1 + inputVal / 100)
-    : inputVal;
+  const currentPrice = mode === 'pct' ? avgCost * (1 + inputVal / 100) : inputVal;
+  if (currentPrice <= 0) { resetUI(); return; }
 
-  if (currentPrice <= 0) { resetResult(); return; }
-
-  const profitPct    = (currentPrice - pos.effectiveAvgCost) / pos.effectiveAvgCost * 100;
-  const recoverAmt   = pos.remainingCost * (target / 100);
-  const sharesToSell = recoverAmt <= 0 ? 0 : Math.ceil(recoverAmt / currentPrice);
-  const freeShares   = pos.remainingShares - sharesToSell;
+  const profitPct    = (currentPrice - avgCost) / avgCost * 100;
+  const totalCost    = shares * avgCost;
+  const recoverAmt   = totalCost * (target / 100);
+  const sharesToSell = Math.ceil(recoverAmt / currentPrice);
+  const freeShares   = shares - sharesToSell;
   const recovered    = sharesToSell * currentPrice;
-  const unrealPnL    = pos.remainingShares * currentPrice - pos.remainingCost;
-  const arcPct       = Math.min(1, Math.max(0, sharesToSell / pos.remainingShares));
+  const arcPct       = Math.min(1, Math.max(0, sharesToSell / shares));
 
   // Arc
   document.getElementById('arcFill').setAttribute('stroke-dasharray', `${arcPct * 220} 220`);
-  document.getElementById('arcFill').setAttribute('stroke', freeShares < 0 ? '#f06a6a' : 'url(#ag)');
+  document.getElementById('arcFill').setAttribute('stroke', freeShares < 0 ? '#f06a6a' : 'url(#arcGrad)');
   const numEl = document.getElementById('arcNum');
   numEl.textContent = sharesToSell <= 0 ? '0' : fmt(sharesToSell);
   numEl.setAttribute('fill', freeShares >= 0 ? '#3dd68c' : '#f06a6a');
 
   // Stats
-  document.getElementById('rRec').textContent   = '$' + fmtM(recovered);
-  document.getElementById('rFree').textContent  = freeShares >= 0 ? fmt(freeShares) + ' 股' : '⚠ 不足';
-  document.getElementById('rFree').className    = 'res-val ' + (freeShares >= 0 ? 'c-blue' : 'c-red');
-  document.getElementById('rPrice').textContent = '$' + fmt2(currentPrice);
-  document.getElementById('rPrice').className   = 'res-val ' + (profitPct >= 0 ? 'c-green' : 'c-red');
-  document.getElementById('rUnreal').textContent= (unrealPnL >= 0 ? '+' : '') + '$' + fmtM(unrealPnL);
-  document.getElementById('rUnreal').className  = 'res-val ' + (unrealPnL >= 0 ? 'c-green' : 'c-red');
+  document.getElementById('rRecovered').textContent  = '$' + fmtM(recovered);
+  document.getElementById('rFreeShares').textContent = freeShares >= 0 ? fmt(freeShares) + ' 股' : '⚠ 不足';
+  document.getElementById('rFreeShares').className   = 'r-val ' + (freeShares >= 0 ? 'c-blue' : 'c-red');
+  document.getElementById('rCurrentPrice').textContent = '$' + fmt2(currentPrice);
+  document.getElementById('rCurrentPrice').className   = 'r-val ' + (profitPct >= 0 ? 'c-green' : 'c-red');
+  document.getElementById('rTotalCost').textContent   = '$' + fmtM(totalCost);
 
   // Banner
-  if (pos.remainingCost <= 0) {
-    setBanner(`<strong style="color:var(--green)">🎉 已達零成本！</strong>
-      所有 <strong>${fmt(pos.remainingShares)} 股</strong> 皆為純獲利部位（市值 $${fmtM(pos.remainingShares * currentPrice)}）。`,
-      'green');
-  } else if (freeShares < 0) {
-    setBanner(`<strong style="color:var(--red)">⚠ 持倉不足。</strong>
-      以現價 $${fmt2(currentPrice)} 回收${target}%需賣 <strong>${fmt(sharesToSell)} 股</strong>，
-      但僅持有 <strong>${fmt(pos.remainingShares)} 股</strong>。
-      可調低回收目標或等待股價上漲。`, 'red');
+  const banner = document.getElementById('infoBanner');
+  if (freeShares < 0) {
+    banner.innerHTML = `<strong style="color:var(--red)">⚠ 持倉不足。</strong>
+      以現價 $${fmt2(currentPrice)} 回收 ${target}% 需賣 <strong>${fmt(sharesToSell)} 股</strong>，
+      但僅持有 <strong>${fmt(shares)} 股</strong>。`;
+    banner.style.background  = 'rgba(240,106,106,0.06)';
+    banner.style.borderColor = 'rgba(240,106,106,0.3)';
   } else if (sharesToSell <= 0) {
-    setBanner(`<strong style="color:var(--green)">🎉 已回收超過 ${target}% 成本！</strong>
-      所有剩餘 <strong>${fmt(pos.remainingShares)} 股</strong> 皆為零成本持倉。`, 'green');
+    banner.innerHTML = `<strong style="color:var(--green)">🎉 已回收超過 ${target}% 成本！</strong>
+      所有 <strong>${fmt(shares)} 股</strong> 皆為零成本持倉。`;
+    banner.style.background  = 'rgba(61,214,140,0.06)';
+    banner.style.borderColor = 'rgba(61,214,140,0.3)';
   } else {
-    const sellPct  = (sharesToSell / pos.remainingShares * 100).toFixed(1);
-    const freeVal  = freeShares * currentPrice;
-    setBanner(`賣出 <strong>${fmt(sharesToSell)} 股（${sellPct}%）</strong> @ $${fmt2(currentPrice)}，
-      回收 <strong style="color:var(--green)">$${fmtM(recovered)}</strong>。
-      剩餘 <strong style="color:var(--blue)">${fmt(freeShares)} 股</strong> 零成本，
-      市值 <strong>$${fmtM(freeVal)}</strong>，皆為純獲利。`, 'blue');
+    const sellPct = (sharesToSell / shares * 100).toFixed(1);
+    const freeVal = freeShares * currentPrice;
+    banner.innerHTML = `賣出 <strong>${fmt(sharesToSell)} 股（${sellPct}%）</strong>，
+      回收 <strong style="color:var(--green)">$${fmtM(recovered)}</strong>，
+      剩餘 <strong style="color:var(--blue)">${fmt(freeShares)} 股</strong> 零成本
+      （市值 <strong>$${fmtM(freeVal)}</strong>，皆為純獲利）。`;
+    banner.style.background  = 'rgba(91,141,238,0.08)';
+    banner.style.borderColor = 'rgba(91,141,238,0.2)';
   }
 }
 
-function setBanner(html, color) {
-  const b = document.getElementById('banner');
-  b.innerHTML = html;
-  const map = { green:'rgba(61,214,140', red:'rgba(240,106,106', blue:'rgba(91,141,238' };
-  const c = map[color] || map.blue;
-  b.style.background   = c + ',.07)';
-  b.style.borderColor  = c + ',.25)';
-}
-
-function resetResult() {
-  document.getElementById('arcFill').setAttribute('stroke-dasharray','0 220');
+function resetUI() {
+  document.getElementById('arcFill').setAttribute('stroke-dasharray', '0 220');
   document.getElementById('arcNum').textContent = '—';
-  document.getElementById('arcNum').setAttribute('fill','#6b7080');
-  ['rRec','rFree','rPrice','rUnreal'].forEach(id => {
+  document.getElementById('arcNum').setAttribute('fill', '#7a7f93');
+  ['rRecovered','rFreeShares','rCurrentPrice','rTotalCost'].forEach(id => {
     document.getElementById(id).textContent = '—';
-    document.getElementById(id).className = 'res-val c-muted';
   });
+  document.getElementById('rFreeShares').className   = 'r-val c-blue';
+  document.getElementById('rCurrentPrice').className = 'r-val';
+  const b = document.getElementById('infoBanner');
+  b.innerHTML      = '請輸入持股數、成本與獲利%，即可計算零成本部位。';
+  b.style.background  = '';
+  b.style.borderColor = '';
 }
 
-// ─── Mode / slider ────────────────────────
-function setMode(m) {
-  mode = m;
-  document.getElementById('mBtnPct').classList.toggle('active', m==='pct');
-  document.getElementById('mBtnPrice').classList.toggle('active', m==='price');
-  document.getElementById('priceUnit').textContent   = m==='pct' ? '%' : '元';
-  document.getElementById('sliderWrap').style.display = m==='pct' ? '' : 'none';
-  document.getElementById('priceIn').placeholder     = m==='pct' ? '20' : '120.00';
-  document.getElementById('priceIn').value = '';
-  calc();
-}
-function onSlider() {
-  document.getElementById('priceIn').value = document.getElementById('slider').value;
-  calc();
-}
-function onPriceInput() {
-  if (mode === 'pct') {
-    const v = parseFloat(document.getElementById('priceIn').value);
-    if (!isNaN(v)) document.getElementById('slider').value = Math.max(-50, Math.min(200, v));
-  }
-  calc();
-}
-function setTarget(el, t) {
-  target = t;
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  calc();
-}
-
-// ─── Helpers ─────────────────────────────
 function fmt(n)  { return Math.round(n).toLocaleString('zh-TW'); }
-function fmt2(n) { return (+n.toFixed(2)).toLocaleString('zh-TW',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmt2(n) { return (+n.toFixed(2)).toLocaleString('zh-TW', {minimumFractionDigits:2, maximumFractionDigits:2}); }
 function fmtM(n) {
   const a = Math.abs(n);
   if (a >= 1e8) return (n/1e8).toFixed(2) + '億';
-  if (a >= 1e4) return (n/1000).toFixed(1) + 'k';
+  if (a >= 1e4) return (n/1e3).toFixed(1) + 'k';
   return fmt2(n);
 }
-function flash(msg) {
-  const b = document.getElementById('banner');
-  const old = b.innerHTML;
-  b.innerHTML = `<strong style="color:var(--red)">⚠ ${msg}</strong>`;
-  b.style.background   = 'rgba(240,106,106,.07)';
-  b.style.borderColor  = 'rgba(240,106,106,.25)';
-  setTimeout(() => { b.innerHTML = old; render(); }, 2200);
-}
-
-// ─── Enter key ────────────────────────────
-['txnPrice','txnQty'].forEach(id =>
-  document.getElementById(id).addEventListener('keydown', e => { if(e.key==='Enter') addTxn(); })
-);
-
-// ─── Init ─────────────────────────────────
-load();
-render();
 </script>
 </body>
 </html>
