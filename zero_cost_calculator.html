@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>零成本持倉計算機</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d26;
+    --border: #2a2d3a;
+    --text: #e8eaf0;
+    --muted: #7a7f93;
+    --green: #3dd68c;
+    --red: #f06a6a;
+    --blue: #5b8dee;
+    --yellow: #f5c842;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+
+  .wrapper {
+    width: 100%;
+    max-width: 480px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .header h1 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .header p {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 5px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 14px;
+  }
+
+  .section-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  /* Input rows */
+  .input-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    gap: 12px;
+  }
+  .input-row:last-child { margin-bottom: 0; }
+
+  .input-label {
+    font-size: 0.875rem;
+    color: var(--text);
+    flex: 1;
+    white-space: nowrap;
+  }
+  .input-label small {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 2px;
+    font-weight: 400;
+  }
+
+  .input-field {
+    display: flex;
+    align-items: center;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+    width: 160px;
+    flex-shrink: 0;
+  }
+  .input-field:focus-within { border-color: var(--blue); }
+
+  .input-field input {
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 10px 12px;
+    width: 100%;
+    text-align: right;
+    outline: none;
+    font-family: inherit;
+  }
+  .input-field input::placeholder { color: var(--muted); font-weight: 400; }
+  /* Remove number arrows */
+  .input-field input::-webkit-outer-spin-button,
+  .input-field input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .input-field input[type=number] { -moz-appearance: textfield; }
+
+  .input-unit {
+    font-size: 0.75rem;
+    color: var(--muted);
+    padding: 0 10px 0 4px;
+    white-space: nowrap;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 18px 0;
+  }
+
+  /* Profit % toggle */
+  .profit-toggle {
+    display: flex;
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+    width: 160px;
+    flex-shrink: 0;
+  }
+  .toggle-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 6px 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .toggle-btn.active {
+    background: var(--card);
+    color: var(--text);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  }
+
+  /* Slider */
+  .slider-row {
+    margin-top: 8px;
+  }
+  .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  input[type=range] {
+    width: 100%;
+    height: 4px;
+    appearance: none;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--blue);
+    cursor: pointer;
+    box-shadow: 0 0 0 3px rgba(91,141,238,0.2);
+  }
+
+  /* Results */
+  .result-main {
+    text-align: center;
+    padding: 8px 0 16px;
+  }
+  .result-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .result-big {
+    font-size: 3.2rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .result-sub {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .result-item {
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  .result-item .r-label { font-size: 0.7rem; color: var(--muted); margin-bottom: 6px; }
+  .result-item .r-val { font-size: 1.15rem; font-weight: 700; }
+
+  /* Colors */
+  .c-green { color: var(--green); }
+  .c-red { color: var(--red); }
+  .c-blue { color: var(--blue); }
+  .c-yellow { color: var(--yellow); }
+  .c-muted { color: var(--muted); }
+
+  /* Info banner */
+  .info-banner {
+    background: rgba(91,141,238,0.08);
+    border: 1px solid rgba(91,141,238,0.2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-top: 14px;
+  }
+  .info-banner strong { color: var(--text); }
+
+  /* Sell target selector */
+  .target-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .target-row label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .target-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .chip {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .chip.active {
+    background: rgba(91,141,238,0.15);
+    border-color: var(--blue);
+    color: var(--blue);
+  }
+
+  /* Progress arc */
+  .arc-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 6px 0 10px;
+  }
+  svg.arc { overflow: visible; }
+
+  /* Responsive */
+  @media (max-width: 420px) {
+    .input-field { width: 140px; }
+    .profit-toggle { width: 140px; }
+    .result-big { font-size: 2.6rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <div class="header">
+    <h1>零成本持倉計算機</h1>
+    <p>輸入持倉資訊，立即算出需賣出多少部位可回本</p>
+  </div>
+
+  <!-- Input Card -->
+  <div class="card">
+    <div class="section-label">持倉資訊</div>
+
+    <div class="input-row">
+      <div class="input-label">持有股數<small>目前總持倉</small></div>
+      <div class="input-field">
+        <input type="number" id="shares" placeholder="1000" oninput="calc()">
+        <span class="input-unit">股</span>
+      </div>
+    </div>
+
+    <div class="input-row">
+      <div class="input-label">平均成本<small>每股買入均價</small></div>
+      <div class="input-field">
+        <input type="number" id="avgCost" placeholder="100.00" oninput="calc()">
+        <span class="input-unit">元</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Input mode: profit% or current price -->
+    <div class="input-row" style="align-items:flex-start">
+      <div class="input-label" style="padding-top:10px">
+        <span id="modeLabel">當前獲利</span>
+        <small id="modeSub">輸入目前浮盈%</small>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+        <div class="profit-toggle">
+          <button class="toggle-btn active" id="btnPct" onclick="setMode('pct')">獲利%</button>
+          <button class="toggle-btn" id="btnPrice" onclick="setMode('price')">股價</button>
+        </div>
+        <div class="input-field">
+          <input type="number" id="profitInput" placeholder="20" oninput="calc()">
+          <span class="input-unit" id="inputUnit">%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slider -->
+    <div class="slider-row" id="sliderRow">
+      <div class="slider-labels">
+        <span>-50%</span><span>0%</span><span>+50%</span><span>+100%</span><span>+200%</span>
+      </div>
+      <input type="range" id="slider" min="-50" max="200" step="1" value="20" oninput="syncSlider()">
+    </div>
+
+  </div>
+
+  <!-- Result Card -->
+  <div class="card" id="resultCard">
+
+    <!-- Arc progress + main number -->
+    <div class="arc-wrap">
+      <svg class="arc" width="180" height="100" viewBox="0 0 180 100">
+        <defs>
+          <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#3dd68c"/>
+            <stop offset="100%" style="stop-color:#5b8dee"/>
+          </linearGradient>
+        </defs>
+        <!-- Background arc -->
+        <path d="M 20 90 A 70 70 0 0 1 160 90"
+          fill="none" stroke="#2a2d3a" stroke-width="10" stroke-linecap="round"/>
+        <!-- Foreground arc -->
+        <path id="arcFill" d="M 20 90 A 70 70 0 0 1 160 90"
+          fill="none" stroke="url(#arcGrad)" stroke-width="10" stroke-linecap="round"
+          stroke-dasharray="0 220" style="transition:stroke-dasharray 0.5s ease"/>
+        <!-- Center text -->
+        <text x="90" y="75" text-anchor="middle" fill="#7a7f93" font-size="11" font-family="Segoe UI,sans-serif">需賣出</text>
+        <text id="arcNum" x="90" y="55" text-anchor="middle" fill="#e8eaf0"
+          font-size="26" font-weight="800" font-family="Segoe UI,sans-serif">—</text>
+        <text id="arcUnit" x="90" y="94" text-anchor="middle" fill="#7a7f93" font-size="10" font-family="Segoe UI,sans-serif">股</text>
+      </svg>
+    </div>
+
+    <div class="result-grid">
+      <div class="result-item">
+        <div class="r-label">賣出回收金額</div>
+        <div class="r-val c-green" id="rRecovered">—</div>
+      </div>
+      <div class="result-item">
+        <div class="r-label">零成本剩餘持倉</div>
+        <div class="r-val c-blue" id="rFreeShares">—</div>
+      </div>
+      <div class="result-item">
+        <div class="r-label">當前股價</div>
+        <div class="r-val" id="rCurrentPrice">—</div>
+      </div>
+      <div class="result-item">
+        <div class="r-label">總投入成本</div>
+        <div class="r-val c-muted" id="rTotalCost">—</div>
+      </div>
+    </div>
+
+    <!-- Partial sell target -->
+    <div class="divider" style="margin:16px 0 12px"></div>
+    <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">回收目標</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap" id="chips">
+      <div class="chip" onclick="setTarget(25)">回收 25%</div>
+      <div class="chip" onclick="setTarget(50)">回收 50%</div>
+      <div class="chip active" onclick="setTarget(100)">回收 100%</div>
+      <div class="chip" onclick="setTarget(125)">回收 125%</div>
+      <div class="chip" onclick="setTarget(150)">回收 150%</div>
+    </div>
+
+    <div class="info-banner" id="infoBanner">
+      請輸入持股數、成本與獲利%，即可計算零成本部位。
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+let mode = 'pct';   // 'pct' | 'price'
+let target = 100;   // recover %
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('btnPct').classList.toggle('active', m==='pct');
+  document.getElementById('btnPrice').classList.toggle('active', m==='price');
+  document.getElementById('modeLabel').textContent = m==='pct' ? '當前獲利' : '當前股價';
+  document.getElementById('modeSub').textContent = m==='pct' ? '輸入目前浮盈%' : '輸入現在股價';
+  document.getElementById('inputUnit').textContent = m==='pct' ? '%' : '元';
+  document.getElementById('sliderRow').style.display = m==='pct' ? '' : 'none';
+  document.getElementById('profitInput').placeholder = m==='pct' ? '20' : '120.00';
+  document.getElementById('profitInput').value = '';
+  calc();
+}
+
+function syncSlider() {
+  const v = document.getElementById('slider').value;
+  document.getElementById('profitInput').value = v;
+  calc();
+}
+
+function setTarget(t) {
+  target = t;
+  document.querySelectorAll('#chips .chip').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  calc();
+}
+
+function calc() {
+  const shares = parseFloat(document.getElementById('shares').value);
+  const avgCost = parseFloat(document.getElementById('avgCost').value);
+  const inputVal = parseFloat(document.getElementById('profitInput').value);
+
+  // Sync slider with input (pct mode)
+  if (mode === 'pct' && !isNaN(inputVal)) {
+    const clamped = Math.max(-50, Math.min(200, inputVal));
+    document.getElementById('slider').value = clamped;
+  }
+
+  const valid = !isNaN(shares) && shares > 0 && !isNaN(avgCost) && avgCost > 0 && !isNaN(inputVal);
+  if (!valid) { resetUI(); return; }
+
+  const currentPrice = mode === 'pct'
+    ? avgCost * (1 + inputVal / 100)
+    : inputVal;
+
+  if (currentPrice <= 0) { resetUI(); return; }
+
+  const profitPct = ((currentPrice - avgCost) / avgCost * 100);
+  const totalCost = shares * avgCost;
+  const recoverTarget = totalCost * (target / 100);
+
+  const sharesToSell = Math.ceil(recoverTarget / currentPrice);
+  const freeShares = shares - sharesToSell;
+  const recovered = sharesToSell * currentPrice;
+
+  // Arc: proportion of shares being sold
+  const arcPct = Math.min(1, sharesToSell / shares);
+  const ARC_LEN = 220;
+  document.getElementById('arcFill').setAttribute('stroke-dasharray', `${arcPct * ARC_LEN} ${ARC_LEN}`);
+
+  const numEl = document.getElementById('arcNum');
+  numEl.textContent = sharesToSell <= 0 ? '0' : fmt(sharesToSell);
+  numEl.setAttribute('fill', freeShares >= 0 ? '#3dd68c' : '#f06a6a');
+
+  // Color arc if can't reach
+  document.getElementById('arcFill').setAttribute('stroke', freeShares < 0 ? '#f06a6a' : 'url(#arcGrad)');
+
+  document.getElementById('rRecovered').textContent = '$' + fmtMoney(recovered);
+  document.getElementById('rRecovered').className = 'r-val c-green';
+
+  document.getElementById('rFreeShares').textContent = freeShares >= 0 ? fmt(freeShares) + ' 股' : '⚠ 不足';
+  document.getElementById('rFreeShares').className = 'r-val ' + (freeShares >= 0 ? 'c-blue' : 'c-red');
+
+  document.getElementById('rCurrentPrice').textContent = '$' + fmtMoney(currentPrice);
+  document.getElementById('rCurrentPrice').className = 'r-val ' + (profitPct >= 0 ? 'c-green' : 'c-red');
+
+  document.getElementById('rTotalCost').textContent = '$' + fmtMoney(totalCost);
+
+  // Info banner
+  const banner = document.getElementById('infoBanner');
+  if (freeShares < 0) {
+    banner.innerHTML = `<strong style="color:var(--red)">⚠ 目前股價不足以賣出回收${target}%成本。</strong><br>
+      以當前股價 $${fmtMoney(currentPrice)}，需賣出 ${sharesToSell} 股但僅持有 ${fmt(shares)} 股。`;
+    banner.style.borderColor = 'rgba(240,106,106,0.3)';
+    banner.style.background = 'rgba(240,106,106,0.05)';
+  } else if (sharesToSell <= 0) {
+    banner.innerHTML = `<strong style="color:var(--green)">🎉 已回收超過${target}%成本！</strong> 所有 ${fmt(shares)} 股皆為零成本持倉。`;
+    banner.style.borderColor = 'rgba(61,214,140,0.3)';
+    banner.style.background = 'rgba(61,214,140,0.05)';
+  } else {
+    const sellPct = (sharesToSell / shares * 100).toFixed(1);
+    const freeVal = freeShares * currentPrice;
+    banner.innerHTML = `賣出 <strong>${fmt(sharesToSell)} 股 (${sellPct}%)</strong>，
+      回收 <strong style="color:var(--green)">$${fmtMoney(recovered)}</strong>，
+      剩餘 <strong style="color:var(--blue)">${fmt(freeShares)} 股</strong> 零成本持倉
+      (市值 <strong>$${fmtMoney(freeVal)}</strong>，皆為純獲利)。`;
+    banner.style.borderColor = 'rgba(91,141,238,0.2)';
+    banner.style.background = 'rgba(91,141,238,0.08)';
+  }
+}
+
+function resetUI() {
+  document.getElementById('arcFill').setAttribute('stroke-dasharray', '0 220');
+  document.getElementById('arcNum').textContent = '—';
+  document.getElementById('arcNum').setAttribute('fill', '#7a7f93');
+  document.getElementById('rRecovered').textContent = '—';
+  document.getElementById('rFreeShares').textContent = '—';
+  document.getElementById('rCurrentPrice').textContent = '—';
+  document.getElementById('rTotalCost').textContent = '—';
+  document.getElementById('infoBanner').innerHTML = '請輸入持股數、成本與獲利%，即可計算零成本部位。';
+  document.getElementById('infoBanner').style.borderColor = '';
+  document.getElementById('infoBanner').style.background = '';
+}
+
+function fmt(n) {
+  return Math.round(n).toLocaleString('zh-TW');
+}
+function fmtMoney(n) {
+  if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e4) return (n/1000).toFixed(1) + 'k';
+  return (+n.toFixed(2)).toLocaleString('zh-TW', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+</script>
+</body>
+</html>
